@@ -12,5 +12,6 @@ namespace CookingBot.Models
         public string Title { get; set; } = string.Empty;
         public List<string> Ingredients { get; set; } = new();
         public string Instructions { get; set; } = string.Empty;
+        public int Calories { get; set; } = 0;
     }
 }

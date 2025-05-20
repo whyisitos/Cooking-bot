@@ -29,4 +29,3 @@ namespace CookingBot.Services
             await _recipes.DeleteOneAsync(r => r.Id == id);
     }
 }
-

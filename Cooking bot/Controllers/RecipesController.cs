@@ -17,7 +17,6 @@ namespace CookingBot.Controllers
             _spoonacularService = spoonacularService;
         }
 
-        // GET: api/recipes/random
         [HttpGet("random")]
         public async Task<IActionResult> GetRandomRecipe()
         {
@@ -25,15 +24,13 @@ namespace CookingBot.Controllers
             return Content(json, "application/json");
         }
 
-        // GET: api/recipes/search?ingr=cheese,tomato
         [HttpGet("search")]
-        public async Task<IActionResult> SearchByIngredients([FromQuery] string ingr)
+        public async Task<ActionResult<List<Recipe>>> SearchByIngredients([FromQuery] string ingr)
         {
-            var json = await _spoonacularService.SearchByIngredientsAsync(ingr);
-            return Content(json, "application/json");
+            var recipes = await _spoonacularService.SearchByIngredientsAsync(ingr);
+            return Ok(recipes);
         }
 
-        // GET: api/recipes/name/{name}
         [HttpGet("name/{name}")]
         public async Task<ActionResult<List<Recipe>>> GetByName(string name)
         {
@@ -44,41 +41,24 @@ namespace CookingBot.Controllers
             return Ok(combined);
         }
 
-        // POST: api/recipes
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] RecipeDto dto)
+        public async Task<IActionResult> Post([FromBody] Recipe recipe)
         {
-            var recipe = new Recipe
-            {
-                Title = dto.Title,
-                Ingredients = dto.Ingredients,
-                Instructions = dto.Instructions
-            };
-
             await _recipeService.CreateAsync(recipe);
             return CreatedAtAction(nameof(GetByName), new { name = recipe.Title }, recipe);
         }
 
-        // PUT: api/recipes/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(string id, [FromBody] RecipeDto dto)
+        public async Task<IActionResult> Put(string id, [FromBody] Recipe recipe)
         {
             var existing = await _recipeService.GetByIdAsync(id);
             if (existing == null) return NotFound();
 
-            var updated = new Recipe
-            {
-                Id = id,
-                Title = dto.Title,
-                Ingredients = dto.Ingredients,
-                Instructions = dto.Instructions
-            };
-
-            await _recipeService.UpdateAsync(id, updated);
+            recipe.Id = id;
+            await _recipeService.UpdateAsync(id, recipe);
             return NoContent();
         }
 
-        // DELETE: api/recipes/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
