@@ -27,8 +27,8 @@ namespace CookingBot.Controllers
         [HttpGet("search")]
         public async Task<ActionResult<List<Recipe>>> SearchByIngredients([FromQuery] string ingr)
         {
-            var recipes = await _spoonacularService.SearchByIngredientsAsync(ingr);
-            return Ok(recipes); 
+            var recipes = await _spoonacularService.SearchByIngredientsParsedAsync(ingr);
+            return Ok(recipes);
         }
 
 

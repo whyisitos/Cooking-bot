@@ -29,6 +29,50 @@ namespace CookingBot.Services
             var url = $"https://api.spoonacular.com/recipes/findByIngredients?ingredients={ingredients}&number=5&apiKey={_apiKey}";
             return await _httpClient.GetStringAsync(url);
         }
+        public async Task<List<Recipe>> SearchByIngredientsParsedAsync(string ingredients)
+        {
+            var url = $"https://api.spoonacular.com/recipes/findByIngredients?ingredients={ingredients}&number=5&apiKey={_apiKey}";
+            var response = await _httpClient.GetStringAsync(url);
+            var json = JArray.Parse(response);
+
+            var recipes = new List<Recipe>();
+            foreach (var item in json)
+            {
+                var id = item["id"]?.ToString();
+                if (string.IsNullOrWhiteSpace(id)) continue;
+
+                // Second request for detailed info
+                var detailUrl = $"https://api.spoonacular.com/recipes/{id}/information?apiKey={_apiKey}";
+                var detailResponse = await _httpClient.GetStringAsync(detailUrl);
+                var detailJson = JObject.Parse(detailResponse);
+
+                var title = detailJson["title"]?.ToString() ?? "No title";
+                var instructions = detailJson["instructions"]?.ToString() ?? "Instructions not available";
+                var ingredientsList = new List<string>();
+
+                var extendedIngredients = detailJson["extendedIngredients"];
+                if (extendedIngredients != null)
+                {
+                    foreach (var ing in extendedIngredients)
+                    {
+                        var nameClean = ing["nameClean"]?.ToString();
+                        if (!string.IsNullOrWhiteSpace(nameClean))
+                            ingredientsList.Add(nameClean);
+                    }
+                }
+
+                recipes.Add(new Recipe
+                {
+                    Title = title,
+                    Instructions = instructions,
+                    Ingredients = ingredientsList,
+                    Calories = detailJson["nutrition"]?["nutrients"]
+                        ?.FirstOrDefault(n => n["name"]?.ToString() == "Calories")?["amount"]?.Value<double>() ?? 0
+                });
+            }
+
+            return recipes;
+        }
 
         public async Task<List<Recipe>> SearchByNameAsync(string name)
         {
