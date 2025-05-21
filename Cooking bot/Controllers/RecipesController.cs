@@ -28,17 +28,16 @@ namespace CookingBot.Controllers
         public async Task<ActionResult<List<Recipe>>> SearchByIngredients([FromQuery] string ingr)
         {
             var recipes = await _spoonacularService.SearchByIngredientsAsync(ingr);
-            return Ok(recipes);
+            return Ok(recipes); 
         }
+
 
         [HttpGet("name/{name}")]
         public async Task<ActionResult<List<Recipe>>> GetByName(string name)
         {
-            var localRecipes = await _recipeService.GetByNameAsync(name);
-            var apiRecipes = await _spoonacularService.SearchByNameAsync(name);
-
-            var combined = localRecipes.Concat(apiRecipes).ToList();
-            return Ok(combined);
+            var local = await _recipeService.GetByNameAsync(name);
+            var api = await _spoonacularService.SearchByNameAsync(name);
+            return Ok(local.Concat(api).ToList());
         }
 
         [HttpPost]
@@ -59,6 +58,17 @@ namespace CookingBot.Controllers
             return NoContent();
         }
 
+        [HttpPut("byname/{name}")]
+        public async Task<IActionResult> PutByName(string name, [FromBody] Recipe recipe)
+        {
+            var existing = await _recipeService.GetByNameSingleAsync(name);
+            if (existing == null) return NotFound();
+
+            recipe.Id = existing.Id;
+            var updated = await _recipeService.UpdateByNameAsync(name, recipe);
+            return updated ? NoContent() : StatusCode(500);
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
@@ -67,6 +77,13 @@ namespace CookingBot.Controllers
 
             await _recipeService.DeleteAsync(id);
             return NoContent();
+        }
+
+        [HttpDelete("byname/{name}")]
+        public async Task<IActionResult> DeleteByName(string name)
+        {
+            var deleted = await _recipeService.DeleteByNameAsync(name);
+            return deleted ? NoContent() : NotFound();
         }
     }
 }
