@@ -29,6 +29,7 @@ namespace CookingBot.Services
             var url = $"https://api.spoonacular.com/recipes/findByIngredients?ingredients={ingredients}&number=5&apiKey={_apiKey}";
             return await _httpClient.GetStringAsync(url);
         }
+
         public async Task<List<Recipe>> SearchByIngredientsParsedAsync(string ingredients)
         {
             var url = $"https://api.spoonacular.com/recipes/findByIngredients?ingredients={ingredients}&number=5&apiKey={_apiKey}";
@@ -41,7 +42,6 @@ namespace CookingBot.Services
                 var id = item["id"]?.ToString();
                 if (string.IsNullOrWhiteSpace(id)) continue;
 
-                // Second request for detailed info
                 var detailUrl = $"https://api.spoonacular.com/recipes/{id}/information?apiKey={_apiKey}";
                 var detailResponse = await _httpClient.GetStringAsync(detailUrl);
                 var detailJson = JObject.Parse(detailResponse);
@@ -63,11 +63,12 @@ namespace CookingBot.Services
 
                 recipes.Add(new Recipe
                 {
+                    Id = id,
                     Title = title,
                     Instructions = instructions,
                     Ingredients = ingredientsList,
-                    Calories = detailJson["nutrition"]?["nutrients"]
-                        ?.FirstOrDefault(n => n["name"]?.ToString() == "Calories")?["amount"]?.Value<double>() ?? 0
+                    Calories = detailJson["nutrition"]?["nutrients"]?
+                        .FirstOrDefault(n => n["name"]?.ToString() == "Calories")?["amount"]?.Value<double>() ?? 0
                 });
             }
 
@@ -111,11 +112,12 @@ namespace CookingBot.Services
 
                     var recipe = new Recipe
                     {
+                        Id = id,
                         Title = title,
                         Instructions = instructions,
                         Ingredients = ingredients,
-                        Calories = detailJson["nutrition"]?["nutrients"]
-                           ?.FirstOrDefault(n => n["name"]?.ToString() == "Calories")?["amount"]?.Value<double>() ?? 0
+                        Calories = detailJson["nutrition"]?["nutrients"]?
+                            .FirstOrDefault(n => n["name"]?.ToString() == "Calories")?["amount"]?.Value<double>() ?? 0
                     };
 
                     recipes.Add(recipe);
@@ -126,4 +128,3 @@ namespace CookingBot.Services
         }
     }
 }
-
