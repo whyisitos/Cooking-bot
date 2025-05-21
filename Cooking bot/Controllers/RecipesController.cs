@@ -69,6 +69,13 @@ namespace CookingBot.Controllers
             return updated ? NoContent() : StatusCode(500);
         }
 
+        [HttpGet("all")]
+        public async Task<ActionResult<List<Recipe>>> GetAll()
+        {
+            var all = await _recipeService.GetByNameAsync(""); // Повертає все
+            return Ok(all);
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
