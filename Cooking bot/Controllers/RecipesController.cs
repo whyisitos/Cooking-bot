@@ -40,6 +40,13 @@ namespace CookingBot.Controllers
             return Ok(local.Concat(api).ToList());
         }
 
+        [HttpGet("all")]
+        public async Task<ActionResult<List<Recipe>>> GetAll()
+        {
+            var all = await _recipeService.GetByNameAsync(""); // шукаємо всі
+            return Ok(all);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Recipe recipe)
         {
@@ -67,13 +74,6 @@ namespace CookingBot.Controllers
             recipe.Id = existing.Id;
             var updated = await _recipeService.UpdateByNameAsync(name, recipe);
             return updated ? NoContent() : StatusCode(500);
-        }
-
-        [HttpGet("all")]
-        public async Task<ActionResult<List<Recipe>>> GetAll()
-        {
-            var all = await _recipeService.GetByNameAsync(""); // Повертає все
-            return Ok(all);
         }
 
         [HttpDelete("{id}")]
